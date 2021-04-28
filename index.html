@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+</head>
+<style>
+    #view {
+        height: 100%;
+        width: 100%;
+    }
+
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100vh;
+    }
+</style>
+
+<body>
+    <div id="view"></div>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.1.0/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/apache/echarts-website@asf-site/zh/asset/theme/dark.js?_v_=20200710_1"></script>
+<script src="./js/kline.js"></script>
+<script src="./js/export.js"></script>
+<script>
+    cfg = [{
+        name: 'MACD(12,26,9)',
+        param: [
+            { name: 'DEA', type: 'line', extra: { symbolSize: 2 } },
+            { name: 'DIF', type: 'line', extra: { symbolSize: 2 } },
+            {
+                name: 'MACD', type: 'bar', extra: {
+                    itemStyle: {
+                        color: function (item) {
+                            if (item.value >= 0) {
+                                return kline.red
+                            } else {
+                                return kline.green
+                            }
+                        }
+                    }
+                }
+            },
+        ]
+    },
+    {
+        name: 'KDJ(9,3,3)',
+        param: [  
+            { name: 'K', type: 'line', extra: { symbolSize: 2 } },
+            { name: 'D', type: 'line', extra: { symbolSize: 2 } },
+            { name: 'J', type: 'line', extra: { symbolSize: 2 } },
+        ]
+    }]
+
+
+    function init(data) {
+        kline = new KLineChart('#view', data.dates, data.kline, data.volume, `${data.name}:${data.code}`)
+
+        for (const item of data.indicator) {
+            
+            const name = item.name;
+            
+            kline.addIndicator(name);
+
+            const exportTable = item.export
+            for (const key in exportTable) {
+                if (Object.hasOwnProperty.call(exportTable, key)) {
+                    const element = exportTable[key];
+
+                    // export 对应到 cfg
+                    cfg.find((v,i) => {
+                        if (v.name == name) {
+
+                            v.param.find((pv, pi) => {
+                                if (pv.name == key) {
+                                    kline.addParam(`${name}:${key}`, pv.type, element, pv.extra)
+                                    return true
+                                }
+                                return false
+                            })
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
+        }
+        kline.mount();
+    }
+    init(window.data)
+
+
+
+    // // macd
+    // kline.addIndicator()
+    //     .addParam('macd-dif', 'line', dif, { symbolSize: 2 })
+    //     .addParam('macd-dea', 'line', dea, { symbolSize: 2 })
+    //     .addParam('macd-macd', 'bar', macd, {
+    //         itemStyle: {
+    //             color: function(item) {
+    //                 if (item.value >= 0) {
+    //                     return kline.red
+    //                 } else {
+    //                     return kline.green
+    //                 }
+    //             }
+    //         }
+    //     })
+    //     // kdj
+    //     .addIndicator()
+    //     .addParam('kdj-k', 'line', k, { symbolSize: 2 })
+    //     .addParam('kdj-d', 'line', d, { symbolSize: 2 })
+    //     .addParam('kdj-j', 'line', j, { symbolSize: 2 })
+    //     .mount()
+
+</script>
+
+</html>
